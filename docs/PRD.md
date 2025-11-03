@@ -75,6 +75,7 @@ Auth & DB: Supabase (Postgres + Auth + Row-Level Security)
 AI Model: OpenAI GPT-4o-mini (API)
 Deployment: Vercel
 Observability: Basic request logging + events table
+Realtime: Supabase Realtime channel verified for live updates (internal testing)
 
 High-Level Flow
 	1.	User logs in → uploads file
