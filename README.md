@@ -1,3 +1,4 @@
+
 # StudyMate AI 🧠
 
 An AI-powered web app that helps students summarize lecture notes, extract key points, and draft professional academic emails — built to practice Technical Product Management and AI integration.

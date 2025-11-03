@@ -1,5 +1,5 @@
-# Iteration Log
-
-| Date       | Feature            | Spec / Prompt Summary                           | Result                             | Metric               | Decision / Next Steps                     |
-|-------------|--------------------|--------------------------------------------------|------------------------------------|----------------------|--------------------------------------------|
-| 2025-11-02 | PRD & Log Setup    | Created PRD.md and Iteration Log.md              | Structure ready for version tracking | N/A                  | Initialize Git & push to GitHub            |
+| Date       | Feature         | Spec / Prompt Summary               | Result                              | Metric | Decision / Next Steps          |
+|-------------|-----------------|------------------------------------|-------------------------------------|--------|--------------------------------|
+| 2025-11-02 | PRD & Log Setup | Created PRD.md and Iteration Log.md | Structure ready for version tracking | N/A    | Initialize Git & push to GitHub |
+| 2025-11-02 | Project Initialization | Created base Next.js + Tailwind project (React Compiler + Turbopack) | Starter app running locally on port 3000 | N/A | Next: Integrate Supabase backend |
+| 2025-11-02 | Environment Setup | Created .env.local file and added Supabase API keys | App ready for Supabase integration | N/A | Next: Add supabaseClient.ts connection file |
