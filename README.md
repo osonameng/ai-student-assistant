@@ -10,7 +10,7 @@ An AI-powered web app that helps students summarize lecture notes, extract key p
 - Rating + feedback system
 - Privacy-first: users can delete their data anytime
 
-#🧠 Tech Stack
+# 🧠 Tech Stack
 - Frontend: Next.js + TailwindCSS
 - Backend: Supabase (Postgres + Auth)
 - AI: OpenAI GPT-4o-mini API
