@@ -23,5 +23,5 @@ An AI-powered web app that helps students summarize lecture notes, extract key p
 ---
 
 ### Author
-**Fortune Omonagbe**  
+**Osoname Fortune Omonagbe**  
 Technical Product Manager / DevOps / Cloud  
