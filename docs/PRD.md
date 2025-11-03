@@ -4,7 +4,7 @@ Last updated: Nov 2, 2025
 
 ⸻
 
-0) Elevator Pitch 
+0) Pitch 
 
 Students waste hours condensing lecture notes and drafting respectful, context-rich emails to professors.
 StudyMate AI lets them upload notes (.txt or .pdf), get a high-signal summary with key points and quiz questions in seconds, and generate a polished academic email using that context. It’s privacy-first, fast, and designed with academic integrity in mind.
