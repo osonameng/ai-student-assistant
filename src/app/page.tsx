@@ -1,190 +1,134 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import { signIn, signUp, signOut } from "../lib/auth";
-import { log } from "../lib/logger";
+import { useState, useEffect } from "react";
+import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 
-log.info("Logger loaded successfully ✅");
+export default function Page() {
+  const supabase = useSupabaseClient();
+  const session = useSession();
 
-export default function Home() {
-  const [data, setData] = useState<any[]>([]);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [text, setText] = useState("");
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
 
-  // Fetch table data
-  async function fetchData() {
-    const { data: { user } } = await supabase.auth.getUser();
-if (!user) return;
+  // 🧠 Summarize handler
+  const handleSummarize = async () => {
+    try {
+      setLoading(true);
 
-const { data, error } = await supabase
-  .from("test_table")
-  .select("*")
-  .eq("user_id", user.id)
-  .order("created_at", { ascending: false });
-    if (error) log.error("❌ Error fetching data:", error.message);
-    else setData(data || []);
-    setLoading(false);
-  }
+      if (!session) {
+        alert("Please log in first!");
+        setLoading(false);
+        return;
+      }
 
-  // Insert message with user ownership
-  async function insertMessage(e: React.FormEvent) {
-    e.preventDefault();
-    if (!message.trim()) return;
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ text, title }),
+      });
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    alert("You must be logged in to send messages!");
-    return;
-  }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Something went wrong");
 
-const { error } = await supabase
-  .from("test_table")
-  .insert([{ message, user_id: user.id }]);
-    if (error) log.error("❌ Insert failed:", error.message);
-    else {
-      setMessage("");
-      fetchData();
+      setSummary(data.summary);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  // Subscribe to changes
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    log.info("useEffect triggered 🚀");
-
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+  // 🔑 Simple login UI
+  const handleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: prompt("Email:")!,
+      password: prompt("Password:")!,
     });
 
-    fetchData();
+    if (error) alert(error.message);
+  };
 
-    const channel = supabase
-      .channel("test_table_changes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "test_table" },
-        (payload) => {
-          log.event("New message received", payload.new);
-          fetchData();
-        }
-      )
-      .subscribe((status) => log.info(`🔌 Realtime channel status: ${status}`));
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
-    return () => {
-      log.warn("Removing realtime channel");
-      supabase.removeChannel(channel);
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
+  // 🧱 UI
   return (
-    <main style={{ padding: "2rem", fontFamily: "monospace" }}>
-      <h1>💬 Supabase Messages</h1>
+    <div style={{ padding: 24, color: "#ddd", fontFamily: "monospace" }}>
+      {/* 🔗 Quick Navigation Links */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <a href="/upload" style={{ color: "#60a5fa", textDecoration: "underline" }}>
+          Upload
+        </a>
+        <a href="/dashboard" style={{ color: "#60a5fa", textDecoration: "underline" }}>
+          Dashboard
+        </a>
+      </div>
 
-      {/* Auth UI */}
+      <h2>🧠 AI Student Assistant</h2>
+
       {!session ? (
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              await signIn(email, password);
-            } catch (err) {
-              await signUp(email, password);
-            }
-          }}
-          style={{ marginBottom: "1rem" }}
-        >
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ marginRight: "0.5rem", padding: "0.5rem" }}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ marginRight: "0.5rem", padding: "0.5rem" }}
-          />
-          <button
-            type="submit"
-            style={{
-              padding: "0.5rem 1rem",
-              background: "#60a5fa",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Sign In / Sign Up
-          </button>
-        </form>
+        <button onClick={handleLogin}>Login</button>
       ) : (
-        <button
-          onClick={async () => {
-            await signOut();
-            setSession(null);
-          }}
-          style={{
-            marginBottom: "1rem",
-            padding: "0.5rem 1rem",
-            background: "#ef4444",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
+        <button onClick={handleLogout}>Logout</button>
       )}
 
-      {/* Message form */}
       {session && (
-        <form onSubmit={insertMessage} style={{ marginBottom: "1rem" }}>
+        <>
+          <h3>Summarize Lecture Notes</h3>
           <input
             type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            style={{
-              padding: "0.5rem",
-              width: "300px",
-              marginRight: "0.5rem",
-            }}
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{ marginBottom: 8, width: "300px", padding: 8 }}
           />
+          <br />
+          <textarea
+            placeholder="Paste your notes here..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            style={{ width: "100%", height: "150px", padding: 8, marginBottom: 8 }}
+          />
+          <br />
           <button
-            type="submit"
+            onClick={handleSummarize}
+            disabled={loading}
             style={{
-              padding: "0.5rem 1rem",
-              background: "#4ade80",
+              background: "#16a34a",
+              color: "white",
               border: "none",
+              borderRadius: 8,
+              padding: "8px 14px",
               cursor: "pointer",
+              opacity: loading ? 0.6 : 1,
             }}
           >
-            Send
+            {loading ? "Summarizing..." : "Summarize"}
           </button>
-        </form>
-      )}
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul>
-          {data.map((row) => (
-            <li key={row.id}>
-              <strong>{row.message}</strong> —{" "}
-              <small>{new Date(row.created_at).toLocaleString()}</small>
-            </li>
-          ))}
-        </ul>
+          {summary && (
+            <pre
+              style={{
+                background: "#111",
+                color: "#0f0",
+                padding: "1rem",
+                borderRadius: 8,
+                marginTop: 16,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {summary}
+            </pre>
+          )}
+        </>
       )}
-    </main>
+    </div>
   );
 }
