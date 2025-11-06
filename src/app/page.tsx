@@ -1,134 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
+import { Upload, Sparkles, BookOpen, BrainCircuit } from "lucide-react";
 
-export default function Page() {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-
-  const [loading, setLoading] = useState(false);
-  const [text, setText] = useState("");
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-
-  // 🧠 Summarize handler
-  const handleSummarize = async () => {
-    try {
-      setLoading(true);
-
-      if (!session) {
-        alert("Please log in first!");
-        setLoading(false);
-        return;
-      }
-
-      const res = await fetch("/api/summarize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ text, title }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Something went wrong");
-
-      setSummary(data.summary);
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🔑 Simple login UI
-  const handleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: prompt("Email:")!,
-      password: prompt("Password:")!,
-    });
-
-    if (error) alert(error.message);
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
-  // 🧱 UI
+export default function Home() {
   return (
-    <div style={{ padding: 24, color: "#ddd", fontFamily: "monospace" }}>
-      {/* 🔗 Quick Navigation Links */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <a href="/upload" style={{ color: "#60a5fa", textDecoration: "underline" }}>
-          Upload
-        </a>
-        <a href="/dashboard" style={{ color: "#60a5fa", textDecoration: "underline" }}>
-          Dashboard
-        </a>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header showAuthButtons />
 
-      <h2>🧠 AI Student Assistant</h2>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
+        <div className="container mx-auto px-4 py-24 md:py-32 relative">
+          <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 text-sm">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-primary font-medium">AI-Powered Study Assistant</span>
+            </div>
 
-      {!session ? (
-        <button onClick={handleLogin}>Login</button>
-      ) : (
-        <button onClick={handleLogout}>Logout</button>
-      )}
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+              Turn Your Notes Into <span className="text-gradient">Summaries</span>
+            </h1>
 
-      {session && (
-        <>
-          <h3>Summarize Lecture Notes</h3>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{ marginBottom: 8, width: "300px", padding: 8 }}
-          />
-          <br />
-          <textarea
-            placeholder="Paste your notes here..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            style={{ width: "100%", height: "150px", padding: 8, marginBottom: 8 }}
-          />
-          <br />
-          <button
-            onClick={handleSummarize}
-            disabled={loading}
-            style={{
-              background: "#16a34a",
-              color: "white",
-              border: "none",
-              borderRadius: 8,
-              padding: "8px 14px",
-              cursor: "pointer",
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? "Summarizing..." : "Summarize"}
-          </button>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
+              Upload your notes, and let AI generate structured study summaries in seconds.
+            </p>
 
-          {summary && (
-            <pre
-              style={{
-                background: "#111",
-                color: "#0f0",
-                padding: "1rem",
-                borderRadius: 8,
-                marginTop: 16,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {summary}
-            </pre>
-          )}
-        </>
-      )}
+            <div className="pt-4">
+              <Link href="/login">
+                <Button size="lg" className="gap-2 hover-glow text-base px-8">
+                  <Upload className="h-5 w-5" />
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -16,17 +16,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing access token" }, { status: 401 });
     }
 
-    // ✅ Supabase setup
-    // ✅ Use service role key for full backend access (bypass RLS)
+    // ✅ Supabase setup (service role = backend only)
     const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, 
-    {
-      auth: { autoRefreshToken: false, persistSession: false },
-    }
-  );
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: { autoRefreshToken: false, persistSession: false },
+      }
+    );
 
-    // ✅ Auth verification
+    // ✅ Verify user
     const {
       data: { user },
       error: userError,
@@ -81,12 +80,25 @@ ${text}
 
     const latency_ms = Date.now() - start;
 
-    // ✅ Save summary in Supabase
+    // ✅ Parse TLDR if JSON, else trim summary
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(summaryText);
+    } catch {
+      parsed = null;
+    }
+
+    const tldr: string =
+      (parsed && typeof parsed.TLDR === "string" && parsed.TLDR.trim()) ||
+      summaryText.slice(0, 220);
+
+    // ✅ Save summary to Supabase
     const { error: summaryError } = await supabase.from("summaries").insert([
       {
         user_id: user.id,
         title: title || "Untitled Summary",
         summary: summaryText,
+        tldr,
         latency_ms,
       },
     ]);
@@ -103,7 +115,7 @@ ${text}
   } catch (err: any) {
     console.error("❌ Unexpected error:", err);
 
-    // 👇 Added diagnostic logging for Anthropic API response
+    // 🩻 Diagnostic for Anthropic API errors
     if (err.response) {
       try {
         const details = await err.response.text();

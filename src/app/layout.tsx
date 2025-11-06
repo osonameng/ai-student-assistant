@@ -1,30 +1,17 @@
-import "../polyfills";
+"use client";
+
 import "./globals.css";
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import SupabaseProvider from "./supabase-provider";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { Inter } from "next/font/google";
 
-export const metadata: Metadata = {
-  title: "AI Student Assistant",
-  description: "Summarize your notes and view your study dashboard",
-};
+const inter = Inter({ subsets: ["latin"] });
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.className} min-h-screen bg-gradient-to-tr from-zinc-950 to-zinc-900 text-white antialiased`}
+      >
         <SupabaseProvider>{children}</SupabaseProvider>
       </body>
     </html>
